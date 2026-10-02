@@ -1,22 +1,29 @@
-import os, json, uuid
+import json
+import os
+import uuid
 from functools import lru_cache
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from google import genai
-from google.genai import types
-from google.cloud import firestore
-from prompts import PROMPT_3, PROMPT_4
 
-PROJECT = os.environ.get("PROJECT_ID", "gator-transfer-nav")
-LOCATION = os.environ.get("LOCATION", "us-central1")
-FAST_MODEL = os.environ.get("FAST_MODEL", "gemini-2.5-flash")
-PLAN_MODEL = os.environ.get("PLAN_MODEL", "gemini-2.5-flash")
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from google import genai
+from google.cloud import firestore
+from google.genai import types
+from pydantic import BaseModel
+
+PROJECT = os.getenv("PROJECT_ID", "gator-transfer-nav")
+LOCATION = os.getenv("LOCATION", "us-central1")
+MODEL = os.getenv("MODEL", "gemini-2.5-flash")
 
 client = genai.Client(vertexai=True, project=PROJECT, location=LOCATION)
 db = firestore.Client(project=PROJECT)
-app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app = FastAPI(title="SFSU TransferMap API", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 class Course(BaseModel):
     code: str
@@ -25,8 +32,10 @@ class Course(BaseModel):
     grade: str
     term: str
 
+
 class Transcript(BaseModel):
     courses: list[Course]
+
 
 class PlanCourse(BaseModel):
     code: str
@@ -34,164 +43,173 @@ class PlanCourse(BaseModel):
     units: float
     why: str
 
+
 class Term(BaseModel):
     term: str
     courses: list[PlanCourse]
 
-class Unscheduled(BaseModel):
-    code: str
-    reason: str
 
 class Plan(BaseModel):
     terms: list[Term]
-    unscheduled: list[Unscheduled]
+    unscheduled: list[dict[str, str]]
+
+
+TRANSCRIPT_PROMPT = """Extract every course from this CCSF transcript. Return JSON only.
+Return {\"courses\":[{\"code\":\"CS 111B\",\"title\":\"...\",\"units\":3,\"grade\":\"A\",\"term\":\"Fall 2024\"}]}.
+Use IP for in-progress and W for withdrawn. Do not guess unreadable values; use an empty string."""
+
+
+PLAN_PROMPT = """You are planning a CCSF student's transfer into the SFSU Computer Science B.S.
+Requirements still needed:
+{requirements}
+
+SFSU course catalog:
+{catalog}
+
+Start term: {start_term}
+Create a term-by-term plan. Use only catalog codes, respect prerequisites and roadmap_term,
+and schedule 12-15 units per Fall/Spring term. Return JSON matching the requested schema."""
+
 
 @lru_cache
 def tables():
-    # Firestore docs can't be bare lists, so sfsu_courses is stored as {"courses": [...]}
     assist = db.collection("tables").document("assist_ccsf_sfsu_cs").get().to_dict()
     sfsu = db.collection("tables").document("sfsu_cs_courses").get().to_dict()["courses"]
-    # Firestore can't nest an array inside an array, so each ccsf_options alternative
-    # is stored as {"courses": [...]}. Unwrap back to the documented list-of-lists.
-    for r in assist["requirements"]:
-        r["ccsf_options"] = [o["courses"] if isinstance(o, dict) else o for o in r["ccsf_options"]]
+    if not assist or not sfsu:
+        raise HTTPException(503, "SFSU course tables are not available")
+    for requirement in assist["requirements"]:
+        requirement["ccsf_options"] = [
+            option["courses"] if isinstance(option, dict) else option
+            for option in requirement["ccsf_options"]
+        ]
     return assist, sfsu
 
-def ask(model, contents, schema):
-    resp = client.models.generate_content(
-        model=model,
+
+def ask(contents, schema):
+    response = client.models.generate_content(
+        model=MODEL,
         contents=contents,
         config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=schema,
-            temperature=0,
+            response_mime_type="application/json", response_schema=schema, temperature=0
         ),
     )
-    return resp.parsed
+    return response.parsed
 
-@app.get("/health")
-def health():
-    return {"ok": True}
 
-# --- Matching: plain Python, no AI. The AI never decides whether a course counts. ---
-
-# ASSIST 2026-2027, p.1: "CR/NC grades are not accepted in courses for the Computer
-# Science major." and "Grades of C or better are required for Mathematics and Physics,
-# Core Computer Science Requirements, and Advanced Computer Science Requirements."
-PASSING = {"A+", "A", "A-", "B+", "B", "B-", "C+", "C"}
-
-def norm(code):
+def normalize(code: str) -> str:
     return " ".join(code.upper().replace("-", " ").split())
 
-def check_requirements(courses):
+
+PASSING = {"A+", "A", "A-", "B+", "B", "B-", "C+", "C"}
+
+
+def match_courses(courses):
     assist, _ = tables()
-    passed = {norm(c.code) for c in courses if c.grade.upper() in PASSING}
-    flagged = {norm(c.code) for c in courses if c.grade.upper() not in PASSING | {"W"}}
+    passed = {normalize(course.code) for course in courses if course.grade.upper() in PASSING}
+    reviewable = {normalize(course.code) for course in courses if course.grade.upper() not in PASSING | {"W"}}
     results, used = [], set()
-    for req in assist["requirements"]:
+    for requirement in assist["requirements"]:
         status, matched, note = "missing", [], ""
-        if not req["ccsf_options"]:
+        if not requirement["ccsf_options"]:
             status, note = "no_articulation", "No CCSF course counts for this. Take it at SFSU."
-        for option in req["ccsf_options"]:
-            codes = [norm(c) for c in option]
-            if all(c in passed for c in codes):
+        for option in requirement["ccsf_options"]:
+            codes = [normalize(code) for code in option]
+            if all(code in passed for code in codes):
                 status, matched, note = "done", option, ""
                 used.update(codes)
                 break
-            if any(c in flagged for c in codes):
+            if any(code in reviewable for code in codes):
                 status, matched = "review", option
                 note = "Grade below C or still in progress. Ask a counselor."
         results.append({
-            "id": req["id"], "sfsu_course": req["sfsu_course"], "sfsu_title": req["sfsu_title"],
-            "status": status, "matched_with": matched, "note": note,
-            "source": f"ASSIST {assist['source']['year']}, p. {req['source_page']}",
+            "id": requirement["id"],
+            "sfsu_course": requirement["sfsu_course"],
+            "sfsu_title": requirement["sfsu_title"],
+            "status": status,
+            "matched_with": matched,
+            "note": note,
+            "source": f"ASSIST {assist['source']['year']}, p. {requirement['source_page']}",
         })
     at_risk = [
-        {"code": c.code, "title": c.title, "units": c.units,
-         "why": "Doesn't match any CS B.S. requirement in ASSIST. May still count as GE or elective units."}
-        for c in courses if c.grade.upper() in PASSING and norm(c.code) not in used
+        {"code": course.code, "title": course.title, "units": course.units,
+         "why": "Doesn't match an SFSU CS requirement in ASSIST. It may still count as GE or elective units."}
+        for course in courses if course.grade.upper() in PASSING and normalize(course.code) not in used
     ]
     return results, at_risk
 
+
 def validate_plan(plan, results):
-    assist, sfsu = tables()
-    known = {c["code"]: c for c in sfsu} | {r["sfsu_course"]: r for r in assist["requirements"]}
-    seen = {r["sfsu_course"] for r in results if r["status"] == "done"}
-    terms, warnings = [], []
-    last_rt = 0  # highest ADT-roadmap semester scheduled so far
-    for t in plan.terms:
-        kept = [c for c in t.courses if c.code in known]
-        dropped = [c.code for c in t.courses if c.code not in known]
+    assist, catalog = tables()
+    known = {course["code"]: course for course in catalog}
+    known.update({requirement["sfsu_course"]: requirement for requirement in assist["requirements"]})
+    seen = {result["sfsu_course"] for result in results if result["status"] == "done"}
+    warnings, output, last_roadmap_term = [], [], 0
+    for term in plan.terms:
+        kept = [course for course in term.courses if course.code in known]
+        dropped = [course.code for course in term.courses if course.code not in known]
         if dropped:
             warnings.append(f"Removed courses not in the SFSU catalog: {', '.join(dropped)}")
-        for c in kept:
-            late = [p for p in known[c.code].get("prereqs", []) if p not in seen]
-            if late:
-                warnings.append(f"{c.code} is scheduled before its prerequisite {', '.join(late)}")
-            # The SFSU ADT roadmap fixes the order of the core and advanced courses.
-            rt = known[c.code].get("roadmap_term")
-            if rt and rt < last_rt:
-                warnings.append(
-                    f"{c.code} is out of sequence: the SFSU ADT roadmap places it in "
-                    f"semester {rt}, after courses already scheduled earlier in this plan"
-                )
-        rts = [known[c.code].get("roadmap_term") for c in kept]
-        rts = [r for r in rts if r]
-        if rts:
-            last_rt = max(last_rt, max(rts))
-        seen.update(c.code for c in kept)
-        units = sum(c.units for c in kept)
+        for course in kept:
+            prerequisites = known[course.code].get("prereqs", [])
+            missing = [prereq for prereq in prerequisites if prereq not in seen]
+            if missing:
+                warnings.append(f"{course.code} is scheduled before prerequisite {', '.join(missing)}")
+        roadmap_terms = [known[course.code].get("roadmap_term") for course in kept]
+        roadmap_terms = [term_number for term_number in roadmap_terms if term_number]
+        if roadmap_terms and min(roadmap_terms) < last_roadmap_term:
+            warnings.append(f"{term.term} contains courses out of SFSU roadmap sequence")
+        if roadmap_terms:
+            last_roadmap_term = max(last_roadmap_term, max(roadmap_terms))
+        seen.update(course.code for course in kept)
+        units = sum(course.units for course in kept)
         if units > 15:
-            warnings.append(f"{t.term} has {units:g} units")
-        terms.append({"term": t.term, "units": units, "courses": [c.model_dump() for c in kept]})
-    return terms, warnings
+            warnings.append(f"{term.term} has {units:g} units")
+        output.append({"term": term.term, "units": units, "courses": [course.model_dump() for course in kept]})
+    return output, warnings
 
-# --- Endpoints ---
 
-@app.post("/analyze")
-async def analyze(file: UploadFile = File(...), start_term: str = "Fall 2027"):
+@app.get("/api/health")
+def health():
+    return {"ok": True, "path": "/api"}
+
+
+@app.post("/api/analyze")
+async def analyze(file: UploadFile = File(...), start_term: str = Form("Fall 2027")):
     data = await file.read()
     if len(data) > 10_000_000:
-        raise HTTPException(413, "File too large (10 MB max).")
-    mime = file.content_type or "application/pdf"
-    transcript = ask(FAST_MODEL, [types.Part.from_bytes(data=data, mime_type=mime), PROMPT_3], Transcript)
-    del data  # the transcript is never written anywhere
+        raise HTTPException(413, "File too large (10 MB maximum)")
+    transcript = ask([types.Part.from_bytes(data=data, mime_type=file.content_type or "application/pdf"), TRANSCRIPT_PROMPT], Transcript)
     if not transcript or not transcript.courses:
-        raise HTTPException(422, "We couldn't read any courses. Try a clearer PDF or photo.")
-
-    results, at_risk = check_requirements(transcript.courses)
-    _, sfsu = tables()
-    needed = [r for r in results if r["status"] != "done"]
-    prompt = PROMPT_4.format(
-        missing_and_sfsu_only_json=json.dumps(needed),
-        sfsu_courses_json=json.dumps(sfsu),
-        start_term=start_term,
+        raise HTTPException(422, "No courses could be read from this transcript")
+    results, at_risk = match_courses(transcript.courses)
+    _, catalog = tables()
+    prompt = PLAN_PROMPT.format(
+        requirements=json.dumps([result for result in results if result["status"] != "done"]),
+        catalog=json.dumps(catalog), start_term=start_term,
     )
-    plan = ask(PLAN_MODEL, [prompt], Plan)
+    plan = ask(prompt, Plan)
     terms, warnings = validate_plan(plan, results)
-
-    count = lambda s: sum(r["status"] == s for r in results)
+    count = lambda status: sum(result["status"] == status for result in results)
     return {
-        "summary": {"courses_found": len(transcript.courses), "done": count("done"),
-                    "missing": count("missing"), "review": count("review"),
-                    "take_at_sfsu": count("no_articulation"),
-                    "units_at_risk": sum(c["units"] for c in at_risk)},
-        "requirements": results,
-        "units_at_risk": at_risk,
-        "plan": terms,
-        "unscheduled": [u.model_dump() for u in plan.unscheduled],
+        "pathway": {"community_college": "City College of San Francisco", "university": "San Francisco State University", "major": "Computer Science B.S."},
+        "transcript": [course.model_dump() for course in transcript.courses],
+        "summary": {"courses_found": len(transcript.courses), "done": count("done"), "missing": count("missing"), "review": count("review"), "take_at_sfsu": count("no_articulation"), "units_at_risk": sum(course["units"] for course in at_risk)},
+        "requirements": results, "units_at_risk": at_risk, "plan": terms,
+        "unscheduled": [item for item in plan.unscheduled],
         "warnings": ["Not official advising. Confirm with an SFSU or CCSF counselor."] + warnings,
     }
 
-@app.post("/share")
-async def share(result: dict):
-    sid = uuid.uuid4().hex[:10]
-    db.collection("shared_plans").document(sid).set({"result": result, "created": firestore.SERVER_TIMESTAMP})
-    return {"id": sid}
 
-@app.get("/plan/{sid}")
-def get_plan(sid: str):
-    doc = db.collection("shared_plans").document(sid).get()
-    if not doc.exists:
+@app.post("/api/share")
+async def share(result: dict):
+    share_id = uuid.uuid4().hex[:10]
+    db.collection("shared_plans").document(share_id).set({"result": result, "created": firestore.SERVER_TIMESTAMP})
+    return {"id": share_id, "path": f"/api/plans/{share_id}"}
+
+
+@app.get("/api/plans/{share_id}")
+def get_plan(share_id: str):
+    document = db.collection("shared_plans").document(share_id).get()
+    if not document.exists:
         raise HTTPException(404, "Plan not found")
-    return doc.to_dict()["result"]
+    return document.to_dict()["result"]

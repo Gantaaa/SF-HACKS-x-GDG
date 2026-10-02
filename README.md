@@ -4,6 +4,11 @@ Upload a CCSF transcript, get a source-cited checklist for the **SFSU Computer S
 
 Built at the SF Hacks x GDG AI Hackathon, October 2, 2026. Tracks: **Build For SFSU** and **GDG Build with AI for Social Good**.
 
+| | |
+| --- | --- |
+| **Live app** | https://transfer-web-938542856973.us-central1.run.app |
+| **API** | https://transfer-api-938542856973.us-central1.run.app/api |
+
 ## The problem
 
 43% of new CSU undergraduates are transfer students, and CCSF sends more of its transfers to SF State than to any other campus — about 39%, more than five times the next destination. But only 18% of community college students transfer within four years, and roughly 1 in 5 who do leave without a degree. Students lose whole terms to courses that never count, because the answer is buried in ASSIST PDFs, catalog pages and 20-minute counselor appointments.
@@ -27,7 +32,7 @@ Gemini reads and explains. Plain Python decides.
 | --- | --- | --- |
 | AI | Gemini 2.5 Flash on **Vertex AI** | Reads the transcript, builds the tables, writes the plan |
 | Backend | FastAPI on **Cloud Run** | `/analyze`, `/share`, `/plan/{id}` |
-| Frontend | React + Vite + Tailwind on **Firebase Hosting** | Upload page and results page |
+| Frontend | React + Vite on **Cloud Run** (nginx) | Upload page and results page |
 | Data | **Firestore** | The locked course-match tables, plus shared plans |
 | Built with | Google AI Studio, Gemini CLI | Prompt testing and development |
 
@@ -48,23 +53,42 @@ Gemini reads and explains. Plain Python decides.
 
 Covers **CCSF → SFSU Computer Science B.S.** for the current ASSIST year only, and says so on screen. ASSIST covers every California community college to every CSU and UC, so each new pathway is the same table conversion plus a human check.
 
+## Endpoints
+
+All application routes are namespaced under `/api`:
+
+| Route | Purpose |
+| --- | --- |
+| `GET /api/health` | liveness |
+| `POST /api/analyze` | multipart transcript upload + `start_term`; returns the full analysis |
+| `POST /api/share` | save a result, returns a share id |
+| `GET /api/plans/{id}` | fetch a shared result |
+
+## Layout
+
+```
+api/      FastAPI service: main.py, requirements.txt, Dockerfile
+web/      React + Vite app, served by nginx on Cloud Run
+scripts/  build_tables.py plus the two verified JSON lookup tables
+```
+
 ## Running it
 
 ```bash
-# Backend
-cd api
-gcloud run deploy transfer-api --source . --region us-central1 --allow-unauthenticated \
-  --set-env-vars PROJECT_ID=$PROJECT_ID,LOCATION=us-central1
+# Backend (needs: gcloud auth application-default login)
+cd api && uvicorn main:app --reload --port 8000
 
-# Course-match tables (needs: gcloud auth application-default login)
-python scripts/build_tables.py            # generate, then check every row by eye
-python scripts/build_tables.py --upload   # load into Firestore
+# Course-match tables — generate, check every row by eye, then upload
+python scripts/build_tables.py
+python scripts/build_tables.py --upload
 
-# Frontend
+# Frontend — VITE_API_URL must end in /api
 cd web && npm install
-echo "VITE_API_URL=<your Cloud Run URL>" > .env.local
+echo "VITE_API_URL=https://transfer-api-938542856973.us-central1.run.app/api" > .env.local
 npm run dev
 ```
+
+Deploy either half with `gcloud run deploy <service> --source .` from `api/` or `web/`.
 
 The ASSIST agreement and SFSU Bulletin PDFs are not committed — `.gitignore` excludes all PDFs so a transcript can never be committed by accident. Download the agreement from [assist.org](https://assist.org) (CCSF → SFSU → Computer Science B.S.) and save the Bulletin page as a PDF.
 

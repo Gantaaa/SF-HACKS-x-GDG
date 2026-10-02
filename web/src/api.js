@@ -1,18 +1,22 @@
-const API = import.meta.env.VITE_API_URL;
+export const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-export async function analyze(file) {
-  const form = new FormData();
-  form.append("file", file);
-  const res = await fetch(`${API}/analyze`, { method: "POST", body: form });
-  if (!res.ok) throw new Error((await res.json()).detail || "Something went wrong");
-  return res.json();
+async function request(path, options) {
+  const response = await fetch(`${API}${path}`, options);
+  if (!response.ok) {
+    let detail = 'Request failed';
+    try { detail = (await response.json()).detail || detail; } catch {}
+    throw new Error(detail);
+  }
+  return response.json();
 }
 
-export async function share(result) {
-  const res = await fetch(`${API}/share`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(result),
-  });
-  return (await res.json()).id;
-}
+export const analyze = (file, startTerm) => {
+  const body = new FormData();
+  body.append('file', file);
+  body.append('start_term', startTerm);
+  return request('/analyze', { method: 'POST', body });
+};
+
+export const share = result => request('/share', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result),
+});
