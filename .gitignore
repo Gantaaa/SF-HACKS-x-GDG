@@ -1,0 +1,7 @@
+node_modules/
+dist/'n.env*
+__pycache__/
+.venv/
+*.pdf
+*.png
+*.jpg
