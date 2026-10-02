@@ -30,5 +30,8 @@ Rules:
 - Use ONLY course codes from the lists above. Never invent a course.
 - Respect prerequisites: a course must come after all of its prerequisites.
 - 12 to 15 units per term; Fall and Spring only.
+- Each course may carry a "roadmap_term" (1-4). That is the semester SFSU's own
+  ADT transfer roadmap places it in. Schedule courses in non-decreasing
+  roadmap_term order: never put a roadmap_term 1 course after a roadmap_term 2 one.
 - For each course, give a one-sentence "why" a student would understand.
 - If something can't be scheduled, add it to "unscheduled" with the reason."""

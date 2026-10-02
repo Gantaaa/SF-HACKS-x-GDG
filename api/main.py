@@ -51,6 +51,10 @@ def tables():
     # Firestore docs can't be bare lists, so sfsu_courses is stored as {"courses": [...]}
     assist = db.collection("tables").document("assist_ccsf_sfsu_cs").get().to_dict()
     sfsu = db.collection("tables").document("sfsu_cs_courses").get().to_dict()["courses"]
+    # Firestore can't nest an array inside an array, so each ccsf_options alternative
+    # is stored as {"courses": [...]}. Unwrap back to the documented list-of-lists.
+    for r in assist["requirements"]:
+        r["ccsf_options"] = [o["courses"] if isinstance(o, dict) else o for o in r["ccsf_options"]]
     return assist, sfsu
 
 def ask(model, contents, schema):
@@ -71,7 +75,10 @@ def health():
 
 # --- Matching: plain Python, no AI. The AI never decides whether a course counts. ---
 
-PASSING = {"A+", "A", "A-", "B+", "B", "B-", "C+", "C", "P", "CR"}  # confirm the minimum grade in the Bulletin
+# ASSIST 2026-2027, p.1: "CR/NC grades are not accepted in courses for the Computer
+# Science major." and "Grades of C or better are required for Mathematics and Physics,
+# Core Computer Science Requirements, and Advanced Computer Science Requirements."
+PASSING = {"A+", "A", "A-", "B+", "B", "B-", "C+", "C"}
 
 def norm(code):
     return " ".join(code.upper().replace("-", " ").split())
@@ -111,6 +118,7 @@ def validate_plan(plan, results):
     known = {c["code"]: c for c in sfsu} | {r["sfsu_course"]: r for r in assist["requirements"]}
     seen = {r["sfsu_course"] for r in results if r["status"] == "done"}
     terms, warnings = [], []
+    last_rt = 0  # highest ADT-roadmap semester scheduled so far
     for t in plan.terms:
         kept = [c for c in t.courses if c.code in known]
         dropped = [c.code for c in t.courses if c.code not in known]
@@ -120,6 +128,17 @@ def validate_plan(plan, results):
             late = [p for p in known[c.code].get("prereqs", []) if p not in seen]
             if late:
                 warnings.append(f"{c.code} is scheduled before its prerequisite {', '.join(late)}")
+            # The SFSU ADT roadmap fixes the order of the core and advanced courses.
+            rt = known[c.code].get("roadmap_term")
+            if rt and rt < last_rt:
+                warnings.append(
+                    f"{c.code} is out of sequence: the SFSU ADT roadmap places it in "
+                    f"semester {rt}, after courses already scheduled earlier in this plan"
+                )
+        rts = [known[c.code].get("roadmap_term") for c in kept]
+        rts = [r for r in rts if r]
+        if rts:
+            last_rt = max(last_rt, max(rts))
         seen.update(c.code for c in kept)
         units = sum(c.units for c in kept)
         if units > 15:

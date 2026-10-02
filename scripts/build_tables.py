@@ -49,6 +49,31 @@ Copy codes and titles exactly as printed. Do not invent courses or prerequisites
 Return a single JSON array of course objects."""
 
 
+# Official SFSU course sequence for a CS transfer student, from the COMP ADT Roadmap:
+# https://bulletin.sfsu.edu/colleges/science-engineering/computer-science/bs-computer-science/adt-roadmap/
+# "Plan of Study Grid", Bulletin 2026-2027. Semester 1-4 after transfer.
+# This is ordering taken from an official page, not inferred prerequisites: the
+# Bulletin requirements page carries no prerequisite data at all.
+ROADMAP_SOURCE = {
+    "name": "SFSU Bulletin 2026-2027, Computer Science B.S. COMP ADT Roadmap",
+    "url": "https://bulletin.sfsu.edu/colleges/science-engineering/computer-science/bs-computer-science/adt-roadmap/",
+}
+ROADMAP_TERM = {
+    "CSC 300GW": 1, "CSC 317": 1, "CSC 340": 1, "MATH 324": 1,
+    "CSC 413": 2, "CSC 415": 2, "CSC 510": 2,
+    "CSC 648": 4,
+}
+
+
+def apply_roadmap(courses):
+    """Tag each course with the semester the official ADT roadmap places it in."""
+    for c in courses:
+        c["roadmap_term"] = ROADMAP_TERM.get(c["code"])
+    tagged = sum(1 for c in courses if c["roadmap_term"])
+    print(f"  tagged {tagged} courses with roadmap_term from the ADT roadmap")
+    return courses
+
+
 def run(client, pdf: pathlib.Path, prompt: str):
     if not pdf.exists():
         sys.exit(f"Missing {pdf}. Download it before running Phase 2.")
@@ -69,6 +94,7 @@ def generate():
     sfsu = run(client, BULLETIN_PDF, PROMPT_2)
     if isinstance(sfsu, dict):                      # model sometimes wraps the array
         sfsu = next(v for v in sfsu.values() if isinstance(v, list))
+    sfsu = apply_roadmap(sfsu)
     SFSU_JSON.write_text(json.dumps(sfsu, indent=2))
     print(f"{SFSU_JSON.name}: {len(sfsu)} courses")
     print("\nNow check every row against the PDFs, fix by hand, then rerun with --upload.")
@@ -79,9 +105,14 @@ def upload():
     db = firestore.Client(project=PROJECT)
     assist = json.loads(ASSIST_JSON.read_text())
     sfsu = json.loads(SFSU_JSON.read_text())
+    # Firestore rejects an array whose elements are arrays, so each ccsf_options
+    # alternative is wrapped as {"courses": [...]}. api/main.py unwraps it on read.
+    for r in assist["requirements"]:
+        r["ccsf_options"] = [{"courses": o} for o in r["ccsf_options"]]
     db.collection("tables").document("assist_ccsf_sfsu_cs").set(assist)
     # Firestore documents can't be bare lists
-    db.collection("tables").document("sfsu_cs_courses").set({"courses": sfsu})
+    db.collection("tables").document("sfsu_cs_courses").set(
+        {"courses": sfsu, "roadmap_source": ROADMAP_SOURCE})
     print(f"Uploaded: {len(assist['requirements'])} requirements, {len(sfsu)} SFSU courses.")
 
 

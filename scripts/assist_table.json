@@ -1,0 +1,168 @@
+{
+  "source": {
+    "name": "City College of San Francisco to San Francisco State University",
+    "year": "2026-2027"
+  },
+  "requirements": [
+    {
+      "id": "math_225",
+      "sfsu_course": "MATH 225",
+      "sfsu_title": "Introduction to Linear Algebra",
+      "units": "3.00",
+      "ccsf_options": [
+        [
+          "MATH 120"
+        ]
+      ],
+      "source_page": 2
+    },
+    {
+      "id": "math_226",
+      "sfsu_course": "MATH 226",
+      "sfsu_title": "Calculus I",
+      "units": "4.00",
+      "ccsf_options": [
+        [
+          "MATH 110A"
+        ]
+      ],
+      "source_page": 2
+    },
+    {
+      "id": "math_227",
+      "sfsu_course": "MATH 227",
+      "sfsu_title": "Calculus II",
+      "units": "4.00",
+      "ccsf_options": [
+        [
+          "MATH 110B"
+        ]
+      ],
+      "source_page": 2
+    },
+    {
+      "id": "math_324",
+      "sfsu_course": "MATH 324",
+      "sfsu_title": "Probability and Statistics with Computing",
+      "units": "3.00",
+      "ccsf_options": [],
+      "source_page": 2
+    },
+    {
+      "id": "phys_220",
+      "sfsu_course": "PHYS 220",
+      "sfsu_title": "General Physics with Calculus I",
+      "units": "3.00",
+      "ccsf_options": [
+        [
+          "PHYC 4A",
+          "PHYC 4AL"
+        ]
+      ],
+      "source_page": 2,
+      "ambiguous": true
+    },
+    {
+      "id": "phys_222",
+      "sfsu_course": "PHYS 222",
+      "sfsu_title": "General Physics with Calculus I Laboratory",
+      "units": "1.00",
+      "ccsf_options": [
+        [
+          "PHYC 4A",
+          "PHYC 4AL"
+        ]
+      ],
+      "source_page": 2,
+      "ambiguous": true
+    },
+    {
+      "id": "phys_230",
+      "sfsu_course": "PHYS 230",
+      "sfsu_title": "General Physics with Calculus II",
+      "units": "3.00",
+      "ccsf_options": [
+        [
+          "PHYC 4B",
+          "PHYC 4BL"
+        ]
+      ],
+      "source_page": 2,
+      "ambiguous": true
+    },
+    {
+      "id": "phys_232",
+      "sfsu_course": "PHYS 232",
+      "sfsu_title": "General Physics with Calculus II Laboratory",
+      "units": "1.00",
+      "ccsf_options": [
+        [
+          "PHYC 4B",
+          "PHYC 4BL"
+        ]
+      ],
+      "source_page": 2,
+      "ambiguous": true
+    },
+    {
+      "id": "csc_101",
+      "sfsu_course": "CSC 101",
+      "sfsu_title": "Introduction to Computing",
+      "units": "3.00",
+      "ccsf_options": [
+        [
+          "CS 110A"
+        ]
+      ],
+      "source_page": 3
+    },
+    {
+      "id": "csc_215",
+      "sfsu_course": "CSC 215",
+      "sfsu_title": "Intermediate Computer Programming",
+      "units": "4.00",
+      "ccsf_options": [
+        [
+          "CS 111B"
+        ]
+      ],
+      "source_page": 3
+    },
+    {
+      "id": "csc_220",
+      "sfsu_course": "CSC 220",
+      "sfsu_title": "Data Structures",
+      "units": "3.00",
+      "ccsf_options": [
+        [
+          "CS 111C"
+        ]
+      ],
+      "source_page": 3
+    },
+    {
+      "id": "csc_230",
+      "sfsu_course": "CSC 230",
+      "sfsu_title": "Discrete Mathematical Structures for Computer Science",
+      "units": "3.00",
+      "ccsf_options": [
+        [
+          "MATH 115"
+        ]
+      ],
+      "source_page": 3
+    },
+    {
+      "id": "csc_256",
+      "sfsu_course": "CSC 256",
+      "sfsu_title": "Machine Structures",
+      "units": "3.00",
+      "ccsf_options": [
+        [
+          "CS 270"
+        ]
+      ],
+      "source_page": 3
+    }
+  ]
+}

@@ -1,0 +1,322 @@
+[
+  {
+    "code": "CSC 300GW",
+    "title": "Ethics, Communication, and Tools for Software Development - GWAR",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 1
+  },
+  {
+    "code": "CSC 317",
+    "title": "Introduction to Web Software Development",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 1
+  },
+  {
+    "code": "CSC 340",
+    "title": "Programming Methodology",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 1
+  },
+  {
+    "code": "CSC 413",
+    "title": "Software Development",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 2
+  },
+  {
+    "code": "CSC 415",
+    "title": "Operating System Principles",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 2
+  },
+  {
+    "code": "CSC 510",
+    "title": "Analysis of Algorithms I",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 2
+  },
+  {
+    "code": "CSC 648",
+    "title": "Software Engineering",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 4
+  },
+  {
+    "code": "MATH 324",
+    "title": "Probability and Statistics with Computing",
+    "units": "3",
+    "prereqs": [],
+    "category": "core",
+    "roadmap_term": 1
+  },
+  {
+    "code": "CSC 520",
+    "title": "Theory of Computing",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 600",
+    "title": "Programming Paradigms and Languages",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 603",
+    "title": "Generative AI: Fundamentals and Applications",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 615",
+    "title": "Embedded Linux Systems and Physical Computing",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 620",
+    "title": "Natural Language Technologies",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 621",
+    "title": "Biomedical Imaging and Analysis",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 630",
+    "title": "Computer Graphics Systems Design",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 631",
+    "title": "Multiplayer Game Development",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 641",
+    "title": "Computer Performance Evaluation",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 642",
+    "title": "Human-Computer Interaction",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 645",
+    "title": "Computer Networks",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 647",
+    "title": "Introduction to Quantum Computing and Quantum Information Science",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 651",
+    "title": "System Administration",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 652",
+    "title": "Introduction to Security and Data Privacy",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 653",
+    "title": "Network Security",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 656",
+    "title": "Computer Organization",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 659",
+    "title": "AI Explainability and Ethics",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 664",
+    "title": "Multimedia Systems",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 665",
+    "title": "Artificial Intelligence",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 667",
+    "title": "Internet Application Design and Development",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 668",
+    "title": "Advanced Object Oriented Software Design and Development",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 671",
+    "title": "Deep Learning",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 675",
+    "title": "Introduction to Database Systems",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 676",
+    "title": "Soft Computing and Decision Support Systems",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 680",
+    "title": "Application Development for Mobile Devices",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 685",
+    "title": "Instructional Methods in Computer Science Teaching",
+    "units": "1",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 686",
+    "title": "Experiences in Computer Science Teaching",
+    "units": "1",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 698",
+    "title": "Topics in Computing",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "CSC 699",
+    "title": "Independent Study",
+    "units": "1-3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "MATH 400",
+    "title": "Numerical Analysis",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "MATH 425",
+    "title": "Applied and Computational Linear Algebra",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  },
+  {
+    "code": "MATH 448",
+    "title": "Introduction to Statistical Learning and Data Mining",
+    "units": "3",
+    "prereqs": [],
+    "category": "elective",
+    "roadmap_term": null
+  }
+]
