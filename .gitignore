@@ -1,7 +1,12 @@
 node_modules/
-dist/'n.env*
+dist/
+.env*
 __pycache__/
 .venv/
+.DS_Store
+
+# Never commit transcripts or any student record.
+# The ASSIST and Bulletin source PDFs stay local too; see README.
 *.pdf
 *.png
 *.jpg

@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+:root {
+  --ucsc-blue: #003C6C;
+  --ucsc-gold: #FDC700;
+  --ucsc-light-blue: #13A5DC;
+  --ocean-dark: #0c4a6e;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #0c4a6e 0%, #003C6C 50%, #001E36 100%);
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Animated gradient background */
+.gradient-bg {
+  background: linear-gradient(-45deg, #003C6C, #0c4a6e, #13A5DC, #075985);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glass morphism effect */
+.glass {
+  @apply bg-white/10 backdrop-blur-md border border-white/10 shadow-xl;
+}
+
+.glass-dark {
+  @apply bg-slate-900/50 backdrop-blur-md border border-white/10 shadow-xl;
+}
+/* Shimmer effect */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Noise texture overlay */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Step indicator */
+.step-active {
+  box-shadow: 0 0 0 3px rgba(253, 199, 0, 0.4);
+}
+
+.step-completed {
+  background: linear-gradient(135deg, #FDC700 0%, #ffaa00 100%);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-gradient-to-r from-ucsc-gold to-yellow-400 text-ucsc-blue font-semibold 
+         py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-ucsc-gold/25 
+         transition-all duration-200 flex items-center justify-center gap-2
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-white/10 text-white font-medium py-3 px-6 rounded-xl 
+         hover:bg-white/20 transition-all duration-200 
+         flex items-center justify-center gap-2
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/50 
+         hover:-translate-y-1 hover:border-white/30;
+}
+
+/* Glow effect */
+.glow-gold {
+  box-shadow: 0 0 30px rgba(253, 199, 0, 0.3);
+}
+
+.glow-blue {
+  box-shadow: 0 0 30px rgba(19, 165, 220, 0.3);
+}
+
+/* Input styles */
+.input-field {
+  @apply w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white
+         placeholder-white/40 focus:outline-none focus:border-ucsc-gold focus:ring-2 
+         focus:ring-ucsc-gold/20 transition-all duration-200;
+}
+
+/* Radio button custom styling */
+input[type="radio"] {
+  @apply sr-only;
+}
+
+input[type="radio"]:checked + label {
+  @apply border-ucsc-gold bg-ucsc-gold/10;
+}
+
+input[type="radio"]:checked + label .radio-dot {
+  @apply bg-ucsc-gold;
+}
+
+/* Status badges */
+.badge-success {
+  @apply px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-sm;
+}
+
+.badge-warning {
+  @apply px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-sm;
+}
+
+.badge-danger {
+  @apply px-3 py-1 bg-red-500/20 text-red-300 border border-red-500/30 rounded-full text-sm;
+}
+
+/* Wave animation at bottom */
+.wave-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(transparent, rgba(19, 165, 220, 0.1));
+  animation: wave 15s linear infinite;
+}
+
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

@@ -1,0 +1,27 @@
+{
+  "summary": { "courses_found": 16, "done": 7, "missing": 3, "review": 2, "take_at_sfsu": 1, "units_at_risk": 9 },
+  "requirements": [
+    { "id": "intro_prog", "sfsu_course": "CSC 210", "sfsu_title": "Introduction to Computer Programming",
+      "status": "done", "matched_with": ["CS 111B"], "note": "", "source": "ASSIST 2026-2027, p. 2" },
+    { "id": "calc_1", "sfsu_course": "MATH 226", "sfsu_title": "Calculus I",
+      "status": "review", "matched_with": ["MATH 110A"],
+      "note": "Grade C- may be below the minimum. Ask a counselor.", "source": "ASSIST 2026-2027, p. 3" },
+    { "id": "machine_struct", "sfsu_course": "CSC 256", "sfsu_title": "Machine Structures",
+      "status": "no_articulation", "matched_with": [],
+      "note": "No CCSF course counts for this. Take it at SFSU.", "source": "ASSIST 2026-2027, p. 4" },
+    { "id": "discrete", "sfsu_course": "CSC 230", "sfsu_title": "Discrete Mathematical Structures",
+      "status": "missing", "matched_with": [], "note": "", "source": "ASSIST 2026-2027, p. 3" }
+  ],
+  "units_at_risk": [
+    { "code": "CS 160A", "title": "Example Elective", "units": 3,
+      "why": "Doesn't match any CS B.S. requirement in ASSIST. May still count as GE or elective units." }
+  ],
+  "plan": [
+    { "term": "Fall 2027", "units": 13, "courses": [
+      { "code": "CSC 256", "title": "Machine Structures", "units": 3,
+        "why": "No CCSF equivalent; prerequisite for CSC 415" }
+    ] }
+  ],
+  "unscheduled": [],
+  "warnings": ["Not official advising. Confirm with an SFSU or CCSF counselor."]
+}
