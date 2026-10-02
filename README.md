@@ -16,8 +16,8 @@ Gemini reads and explains. Plain Python decides.
 
 1. **Gemini** converts the official ASSIST agreement and the SFSU Bulletin into two JSON lookup tables (once, offline — `scripts/build_tables.py`).
 2. **Gemini** reads the uploaded transcript PDF or phone photo and returns structured JSON.
-3. **Plain Python** matches each course against the ASSIST table and marks every requirement `done`, `missing`, `review` or `no_articulation`.
-4. **Gemini** writes the semester plan, which Python then validates — any course not in the SFSU catalog is removed, and prerequisite order and unit loads are checked.
+3. **Plain Python** matches each course against the ASSIST table and marks every requirement `done`, `missing`, `review` or `no_articulation`. The agreement's own grade rules are enforced here: C or better, and CR/NC not accepted for the major.
+4. **Gemini** writes the semester plan, which Python then validates — any course not in the SFSU catalog is removed, and the sequence is checked against SFSU's official COMP ADT Roadmap along with per-term unit loads.
 
 **The AI never decides whether a course counts.** That comes from the official ASSIST agreement, so a hallucination cannot change a student's credits.
 
@@ -36,7 +36,7 @@ Gemini reads and explains. Plain Python decides.
 | Risk | What could go wrong | How the app handles it |
 | --- | --- | --- |
 | Hallucination | Gemini claims a course counts when it doesn't | Matching is deterministic Python against the ASSIST table; every ✅ cites its ASSIST page |
-| Invented plan courses | The plan includes a course SFSU doesn't offer | `validate_plan()` removes any course not in the Bulletin list and flags prerequisite order |
+| Invented plan courses | The plan includes a course SFSU doesn't offer | `validate_plan()` removes any course not in the Bulletin list, and flags any plan that breaks the sequence in SFSU's official [COMP ADT Roadmap](https://bulletin.sfsu.edu/colleges/science-engineering/computer-science/bs-computer-science/adt-roadmap/) or exceeds 15 units in a term |
 | Extraction errors | A misread grade or course code | The results page lists every extracted course so the student can spot mistakes; unreadable values stay blank, never guessed |
 | Privacy (FERPA) | Transcripts are protected student records | Processed in memory and never stored or logged; names and IDs are not extracted; only results are saved, and only when the student clicks Share |
 | Over-trust | A student skips the counselor entirely | A fixed "not official advising" banner; ⚠️ items route to a counselor; the share link is built for that meeting |
